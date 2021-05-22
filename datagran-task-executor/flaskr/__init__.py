@@ -2,7 +2,9 @@ import os
 
 from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
+from bson import ObjectId
 from . import task_status
+import subprocess
 
 def create_app(test_config=None):
     # create and configure the app
@@ -34,8 +36,25 @@ def create_app(test_config=None):
     
     @app.route("/new_task", methods = ['POST'])
     def add_one():
+        command = request.json['cmd']
+        #TODO: Send to async queue before executing the command
         pending_status = task_status.TaskStatus.NOT_STARTED.value[0]
-        saved_task = db.tasks.insert_one({'cmd': request.json['cmd'], 'state': pending_status})
+        error_status = task_status.TaskStatus.ERROR.value[0]
+        try:
+          command_execution = subprocess.run([command], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+          print("Process stdout: " + str(command_execution.stdout))
+          print("Process stderr: " + str(command_execution.stderr))
+          saved_task = db.tasks.insert_one({'cmd': command, 'state': pending_status, 'output': command_execution.stdout})
+        except:
+          saved_task = db.tasks.insert_one({'cmd': command, 'state': error_status, 'output': ''})
+          
         return jsonify({"id" : str(saved_task.inserted_id)})
+
+    @app.route("/get_output/<taskId>", methods = ['GET'])
+    def find_one(taskId):
+        task = db.tasks.find_one({"_id" : ObjectId(taskId)})
+        task_output = task['output'].decode("utf-8")
+        print(task)
+        return jsonify({'output' : task_output, 'state': task['state'], 'cmd': task['cmd']})
 
     return app
