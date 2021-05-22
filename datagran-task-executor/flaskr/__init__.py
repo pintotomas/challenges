@@ -1,14 +1,17 @@
 import os
 
-from flask import Flask
-
+from flask import Flask, jsonify, request
+from flask_pymongo import PyMongo
+from . import task_status
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+    app.config["MONGO_URI"] = "mongodb://admin:admin@localhost:27017/tasks?authSource=admin"
+    mongodb_client = PyMongo(app)
+    db = mongodb_client.db
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
 
     if test_config is None:
@@ -28,5 +31,11 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
+    
+    @app.route("/new_task", methods = ['POST'])
+    def add_one():
+        pending_status = task_status.TaskStatus.NOT_STARTED.value[0]
+        saved_task = db.tasks.insert_one({'cmd': request.json['cmd'], 'state': pending_status})
+        return jsonify({"id" : str(saved_task.inserted_id)})
 
     return app
