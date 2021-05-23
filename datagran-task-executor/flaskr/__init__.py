@@ -1,11 +1,11 @@
 import os
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_apscheduler import APScheduler
 from threading import Thread
 from flask_pymongo import PyMongo
-from bson import ObjectId
-from . import task_executor
+import bson
+from . import task_executor, error_codes
 
 
 
@@ -45,18 +45,30 @@ def create_app(test_config=None):
     @app.route("/new_task", methods = ['POST'])
     def add_one():
         command = request.json['cmd']
-        pending_status = task_status.TaskStatus.NOT_STARTED.value[0]
-        saved_task = db.tasks.insert_one({'cmd': command, 'state': pending_status})
-        
-        t = Thread(target = task_exec.run, args=(command, saved_task.inserted_id), daemon = True)
-        t.start()
-        return jsonify({"id" : str(saved_task.inserted_id)})
+        try:
+          saved_task = db.tasks.insert_one({'cmd': command, 'state': task_status.TaskStatus.NOT_STARTED.value})
+          t = Thread(target = task_exec.run, args=(command, saved_task.inserted_id), daemon = True)
+          t.start()
+          return make_response({"id" : str(saved_task.inserted_id)}, 200)
+        except Exception as e:
+          return make_response(jsonify({"error": error_codes.ErrorCodes.INTERNAL_ERROR.value}), 500)
+
 
     @app.route("/get_output/<taskId>", methods = ['GET'])
     def find_one(taskId):
-        task = db.tasks.find_one({"_id" : ObjectId(taskId)})
-        #task_output = task['output'].decode("utf-8")
-        print(task)
-        return jsonify({'output' : task_output, 'state': task['state'], 'cmd': task['cmd']})
+      try:
+        task = db.tasks.find_one({"_id" : bson.ObjectId(taskId)})
+        if not task:
+          return make_response(jsonify({'error': error_codes.ErrorCodes.TASK_NOT_FOUND.value}))
+        if not task['output']:
+          return make_response(jsonify({'output' : '', 'state': task['state'], 
+          'cmd': task['cmd']})
+           , 200)
+        task_output = task['output'].decode("utf-8")
+        return make_response(jsonify({'output' : task_output, 'state': task['state'],
+         'cmd': task['cmd']}), 200)
+      except bson.errors.InvalidId:
+        return make_response(jsonify({'error': error_codes.ErrorCodes.INVALID_ID.value}))
+      
 
     return app

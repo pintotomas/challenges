@@ -13,12 +13,16 @@ class TaskExecutor:
     self._running = False
 
   def run(self, command, task_id):
-    #print("Coommand is: " + str(command) + " id is " + str(task_id))
     filter = { '_id': task_id }
     try:
-      command_execution = subprocess.run([command], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-      #print("Process stdout: " + str(command_execution.stdout))
-      #print("Process stderr: " + str(command_execution.stderr))
-      saved_task = self.db.tasks.replace_one(filter, {'cmd': command, 'state': task_status.TaskStatus.FINISHED.value[0], 'output': command_execution.stdout})
-    except:
-      saved_task = self.db.tasks.replace_one(filter, {'cmd': command, 'state': task_status.TaskStatus.ERROR.value[0], 'output': ''})
+      command_execution = subprocess.run(command.split(" "), stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE)
+      saved_task = self.db.tasks.replace_one(filter, {'cmd': command,
+                     'state': task_status.TaskStatus.FINISHED.value,
+                     'output': command_execution.stdout + command_execution.stderr})
+    except Exception as e:
+      print("Exception occured while trying to execute command " + command + ". Error is: " + str(e))
+      saved_task = self.db.tasks.replace_one(filter, 
+                     {'cmd': command,
+                      'state': task_status.TaskStatus.ERROR.value,
+                      'output': ''})
