@@ -1,20 +1,25 @@
 import os
 
 from flask import Flask, jsonify, request
+from flask_apscheduler import APScheduler
+from threading import Thread
 from flask_pymongo import PyMongo
 from bson import ObjectId
-from . import task_status
-import subprocess
+from . import task_executor
+
+
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+
     app.config["MONGO_URI"] = "mongodb://admin:admin@localhost:27017/tasks?authSource=admin"
     mongodb_client = PyMongo(app)
     db = mongodb_client.db
     app.config.from_mapping(
         SECRET_KEY='dev',
     )
+
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -29,6 +34,9 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    task_exec = task_executor.TaskExecutor(db)
+
+
     # a simple page that says hello
     @app.route('/hello')
     def hello():
@@ -37,23 +45,17 @@ def create_app(test_config=None):
     @app.route("/new_task", methods = ['POST'])
     def add_one():
         command = request.json['cmd']
-        #TODO: Send to async queue before executing the command
         pending_status = task_status.TaskStatus.NOT_STARTED.value[0]
-        error_status = task_status.TaskStatus.ERROR.value[0]
-        try:
-          command_execution = subprocess.run([command], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-          print("Process stdout: " + str(command_execution.stdout))
-          print("Process stderr: " + str(command_execution.stderr))
-          saved_task = db.tasks.insert_one({'cmd': command, 'state': pending_status, 'output': command_execution.stdout})
-        except:
-          saved_task = db.tasks.insert_one({'cmd': command, 'state': error_status, 'output': ''})
-          
+        saved_task = db.tasks.insert_one({'cmd': command, 'state': pending_status})
+        
+        t = Thread(target = task_exec.run, args=(command, saved_task.inserted_id), daemon = True)
+        t.start()
         return jsonify({"id" : str(saved_task.inserted_id)})
 
     @app.route("/get_output/<taskId>", methods = ['GET'])
     def find_one(taskId):
         task = db.tasks.find_one({"_id" : ObjectId(taskId)})
-        task_output = task['output'].decode("utf-8")
+        #task_output = task['output'].decode("utf-8")
         print(task)
         return jsonify({'output' : task_output, 'state': task['state'], 'cmd': task['cmd']})
 
