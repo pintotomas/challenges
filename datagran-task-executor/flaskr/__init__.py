@@ -16,32 +16,8 @@ def create_app(test_config=None):
     app.config["MONGO_URI"] = "mongodb://admin:admin@localhost:27017/tasks?authSource=admin"
     mongodb_client = PyMongo(app)
     db = mongodb_client.db
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-    )
-
-
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
-
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
 
     task_exec = task_executor.TaskExecutor(db)
-
-
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
-    
     @app.route("/new_task", methods = ['POST'])
     def add_one():
         command = request.json['cmd']
@@ -60,7 +36,7 @@ def create_app(test_config=None):
         task = db.tasks.find_one({"_id" : bson.ObjectId(taskId)})
         if not task:
           return make_response(jsonify({'error': error_codes.ErrorCodes.TASK_NOT_FOUND.value}))
-        if not task['output']:
+        if 'output' not in task or not task['output']:
           return make_response(jsonify({'output' : '', 'state': task['state'], 
           'cmd': task['cmd']})
            , 200)
