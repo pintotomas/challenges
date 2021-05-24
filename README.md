@@ -22,7 +22,7 @@ Then you can access the API via the address **http://localhost:5000/**
 
 ## API specification
 
-1. Request to save and execute a new command
+###1. Request to save and execute a new command
 
 To do this, you should perform a POST request to http://localhost:5000/new_task 
 with a json body like the following:
@@ -49,7 +49,7 @@ If there is any other unlikely error, the server will return a 500 status with t
   "error": "INTERNAL_ERROR"
 }
 
-2. Request to get command execution status and output
+###2. Request to get command execution status and output
 
 To do this, you should perform a GET request to http://localhost:5000/get_output/<taskId> where taskId is the id returned from the POST request
 
@@ -70,7 +70,7 @@ There are 4 different states for a command:
   NOT_EXECUTED = The command wasn't executed (This could happen because it's an invallid command, for example if we try to execute 'asd') 
 
   FINISHED_OK = The command executed succesfully
-  
+
   FINISHED_ERROR = The command could be executed, but there was an error during the execution. For example if we run two times 'mkdir test', the second time it will fail, because it already exists
 
 **NOTE** I decided to include a state in this response because the output itself could be very little information sometimes. In this example, the command executed doesnt have any output from the STDERR or STDOUT and it could be confusing, we could wonder if it was executed or not.
