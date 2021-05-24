@@ -1,6 +1,6 @@
 app:
   build: .
-  command: python -u src/app.py
+  command: python -u /app/src/app.py
   env_file:
     db.env
   ports:
