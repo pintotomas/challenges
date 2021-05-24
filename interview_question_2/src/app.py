@@ -27,10 +27,13 @@ def get_db():
 #
 # Returns status 400 if:
 #   - 'cmd' is not found in the request json body
+#   - body is not JSON
 #
 # Returns status 500 if there is any internal error  
 # A command must be found in the request json body, otherwise a 500 Status is returned
-# 
+#
+# PRE: The command to be received is only one, it's not a set of commands separated by ; 
+#
 @app.route("/new_task", methods = ['POST'])
 def add_one():
     try:
