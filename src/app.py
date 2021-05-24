@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request, make_response
 import pymongo
-from pymongo import MongoClient
 import task_executor
 from enums.task_status import TaskStatus
 from enums.error_codes import ErrorCodes
@@ -12,7 +11,7 @@ import os
 app = Flask(__name__)
 
 def get_db():
-    client = MongoClient(host='datagran_task_scheduler',
+    client = pymongo.MongoClient(host='datagran_task_scheduler',
                          port=27017, 
                          username=os.environ['MONGO_INITDB_ROOT_USERNAME'], 
                          password=os.environ['MONGO_INITDB_ROOT_PASSWORD'],
@@ -21,7 +20,6 @@ def get_db():
     return db
 
 
-@app.route("/new_task", methods = ['POST'])
 # Saves a new task to the database with the state NOT_STARTED and starts a new thread 
 # which executes the command.
 #
@@ -33,6 +31,7 @@ def get_db():
 # Returns status 500 if there is any internal error  
 # A command must be found in the request json body, otherwise a 500 Status is returned
 # 
+@app.route("/new_task", methods = ['POST'])
 def add_one():
     try:
       command = request.json['cmd']

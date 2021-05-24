@@ -5,10 +5,6 @@ class TaskExecutor:
 
   def __init__(self, db):
     self.db = db
-    self._running = True
-  
-  def terminate(self):
-    self._running = False
 
   # Runs a command and saves it status in the DB 
   # If the command is not valid, the task is not executed and it's updated to NOT_EXECUTED
