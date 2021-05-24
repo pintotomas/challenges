@@ -22,7 +22,7 @@ Then you can access the API via the address **http://localhost:5000/**
 
 ## API specification
 
-###1. Request to save and execute a new command
+###1) Request to save and execute a new command
 
 To do this, you should perform a POST request to http://localhost:5000/new_task 
 with a json body like the following:
@@ -49,7 +49,7 @@ If there is any other unlikely error, the server will return a 500 status with t
   "error": "INTERNAL_ERROR"
 }
 
-###2. Request to get command execution status and output
+###2) Request to get command execution status and output
 
 To do this, you should perform a GET request to http://localhost:5000/get_output/<taskId> where taskId is the id returned from the POST request
 
