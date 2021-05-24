@@ -64,9 +64,13 @@ If the ID is valid and exists in the db, a 200 status code is returned with a js
 There are 4 different states for a command:
 
   NOT_STARTED = The command isn't executing yet.
-  STARTED = The command has started it's execution
+
+  STARTED = The command has started it's 
+
   NOT_EXECUTED = The command wasn't executed (This could happen because it's an invallid command, for example if we try to execute 'asd') 
+
   FINISHED_OK = The command executed succesfully
+  
   FINISHED_ERROR = The command could be executed, but there was an error during the execution. For example if we run two times 'mkdir test', the second time it will fail, because it already exists
 
 **NOTE** I decided to include a state in this response because the output itself could be very little information sometimes. In this example, the command executed doesnt have any output from the STDERR or STDOUT and it could be confusing, we could wonder if it was executed or not.
