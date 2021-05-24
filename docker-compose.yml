@@ -1,0 +1,18 @@
+app:
+  build: .
+  command: python -u src/app.py
+  env_file:
+    db.env
+  ports:
+    - "5000:5000"
+  volumes:
+    - .:/app
+  links:
+    - db
+db:
+  image: mongo:4.4.6
+  hostname: datagran_task_scheduler
+  env_file:
+    db.env
+  ports:
+    - 27017:27017
