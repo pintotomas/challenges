@@ -51,7 +51,7 @@ If there is any other unlikely error, the server will return a 500 status with t
 
 ### 2) Request to get command execution status and output
 
-To do this, you should perform a GET request to http://localhost:5000/get_output/{taskId} where taskId is the id returned from the POST request
+To do this, you should perform a GET request to http://localhost:5000/get_output/{taskId} where {taskId} is the id returned from the POST request
 
 If the ID is valid and exists in the db, a 200 status code is returned with a json response including the command, it's output and the state in which it finished, for example:
 
