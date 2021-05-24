@@ -1,0 +1,38 @@
+ <app>
+
+   <func signal='main'>
+    
+     <print>Enter an integer:<print/>
+     <read_input>
+        <variable name='x1'/>
+     <read_input/>
+
+     <assign variable='x2' value='x1'/>
+     <loop>
+        <modulus variable='x1' value='x2'>
+        <minus variable='x2' value='1'/>
+        <compare variable='x2' value='0'/>
+     </loop>
+
+   </func>
+
+   <func signal='signal.modulus_0'>
+     <print>
+      Found new exact divisor of 
+       <variable name='x1'/>
+        :
+       <variable name='x2'/>
+     </print>
+     <add variable='x2' value='2'/>
+   </func>
+
+  <func signal='signal.equals'>
+     <print>
+        Finished scanning all the exact divisors of 
+        <variable name='x1'/>
+     </print>
+     <exit/>
+   </func>
+
+
+ </app>
