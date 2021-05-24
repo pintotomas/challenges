@@ -34,6 +34,8 @@ def get_db():
 @app.route("/new_task", methods = ['POST'])
 def add_one():
     try:
+      if (not request.is_json):
+        return make_response(jsonify({"error": ErrorCodes.REQUEST_BODY_MUST_BE_JSON.value}), 400)
       command = request.json['cmd']
       db = get_db()
       task_exec = task_executor.TaskExecutor(db)

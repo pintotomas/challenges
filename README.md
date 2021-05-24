@@ -28,7 +28,7 @@ To do this, you should perform a POST request to http://localhost:5000/new_task
 with a json body like the following:
 
 {
-	"cmd":"mkdir ori2"
+	"cmd":"mkdir test"
 }
 
 If successfully created the task, a 200 status code is returned with a json response including the id of the command saved to the DB:
@@ -41,6 +41,12 @@ If "cmd" is missing in the json body, a 400 status code is returned with the fol
 
 {
   "error": "COMMAND_MISSING"
+}
+
+If the body is not JSON, a 400 status code is returned with the following response:
+
+{
+  "error": "REQUEST_BODY_MUST_BE_JSON"
 }
 
 If there is any other unlikely error, the server will return a 500 status with the following response:
